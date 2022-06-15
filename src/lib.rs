@@ -12,10 +12,15 @@
 //! This allows the bitvec to be used without external synchronization, though the perils
 //! of improper use of atomics can come into play.
 
-use std::sync::atomic::AtomicU64;
-use std::sync::atomic::Ordering;
-use std::borrow::Borrow;
-use std::marker::PhantomData;
+#![no_std]
+
+use core::sync::atomic::{AtomicU64, Ordering};
+use core::borrow::Borrow;
+use core::marker::PhantomData;
+
+extern crate alloc;
+
+use alloc::vec::Vec;
 
 /// AtomicBitVec is build atop a standard [`Vec`], and uses [`AtomicU64`] for its backing store.
 /// The ordering for atomic operations is left to the user to decide.
@@ -23,6 +28,7 @@ use std::marker::PhantomData;
 /// The term "blocks" is used throughout this documentation to refer to the number of atomic
 /// integers are stored in the backing storage. All resizing and allocation is done in block-sized
 /// units; this means that the bit-length of these bitvecs will *always* be a multiple of 64.
+#[derive(Debug)]
 pub struct AtomicBitVec {
     data: Vec<AtomicU64>
 }
@@ -61,7 +67,7 @@ impl AtomicBitVec {
     /// vector itself. This does not take into account potential reserve overhead; it is based
     /// purely on the current length of the bitvec.
     pub fn size_in_mem(&self) -> usize {
-        std::mem::size_of::<Vec<AtomicU64>>() + self.data.len() * std::mem::size_of::<AtomicU64>()
+        core::mem::size_of::<Vec<AtomicU64>>() + self.data.len() * core::mem::size_of::<AtomicU64>()
     }
 
     /// Creates a new bitvec with capacity to hold at least `bit_cap` many bits.
